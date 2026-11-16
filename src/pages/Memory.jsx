@@ -1,26 +1,34 @@
 import { useEffect, useState } from 'react'
-import { getMemory, saveMemory } from '../lib/db'
-import { DEFAULT_STYLE_GUIDE } from '../config'
+import { useParams } from 'react-router-dom'
+import { getBook, updateBook } from '../lib/db'
+import { notifyBookChanged } from '../lib/bookEvents'
 
 export default function Memory() {
+  const { bookId } = useParams()
   const [m, setM] = useState(null)
+  const [title, setTitle] = useState('')
   const [style, setStyle] = useState('')
   const [memory, setMemory] = useState('')
   const [msg, setMsg] = useState('')
   const [error, setError] = useState('')
 
   useEffect(() => {
-    getMemory()
-      .then(r => { setM(r); setStyle(r.style_guide); setMemory(r.memory) })
+    setM(null)
+    getBook(bookId)
+      .then(r => { setM(r); setTitle(r.title); setStyle(r.style_guide); setMemory(r.memory) })
       .catch(e => setError(e.message))
-  }, [])
+  }, [bookId])
 
-  const dirty = m && (style !== m.style_guide || memory !== m.memory)
+  const dirty = m && (title.trim() !== m.title || style !== m.style_guide || memory !== m.memory)
 
   const save = async () => {
+    if (!title.trim()) return setError('Il titolo del libro non può essere vuoto.')
+    setError('')
     try {
-      await saveMemory({ style_guide: style, memory })
-      setM({ ...m, style_guide: style, memory })
+      await updateBook(bookId, { title: title.trim(), style_guide: style, memory })
+      if (title.trim() !== m.title) notifyBookChanged(bookId)
+      setM({ ...m, title: title.trim(), style_guide: style, memory })
+      setTitle(title.trim())
       setMsg('Salvato')
       setTimeout(() => setMsg(''), 2000)
     } catch (e) {
@@ -46,6 +54,13 @@ export default function Memory() {
 
       <div className="card" style={{ marginBottom: 20 }}>
         <div className="row" style={{ marginBottom: 8 }}>
+          <span className="label">Titolo del libro</span>
+        </div>
+        <input className="input serif" value={title} onChange={e => setTitle(e.target.value)} style={{ fontSize: 18 }} />
+      </div>
+
+      <div className="card" style={{ marginBottom: 20 }}>
+        <div className="row" style={{ marginBottom: 8 }}>
           <span className="label">Personaggi, ricorrenze e dettagli inventati</span>
         </div>
         <p className="muted" style={{ fontSize: 13, marginTop: 0 }}>
@@ -58,10 +73,6 @@ export default function Memory() {
       <div className="card">
         <div className="row" style={{ marginBottom: 8 }}>
           <span className="label">Guida di stile</span>
-          <span className="spacer" />
-          <button className="btn btn-ghost btn-sm" onClick={() => window.confirm('Ripristinare la guida di stile iniziale?') && setStyle(DEFAULT_STYLE_GUIDE)}>
-            Ripristina iniziale
-          </button>
         </div>
         <textarea className="textarea" rows={24} value={style} onChange={e => setStyle(e.target.value)} />
       </div>

@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { listChapters, createChapter } from '../lib/db'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { listChapters, createChapter, getBook } from '../lib/db'
 import { fmtShortDate, today } from '../lib/format'
-import { BOOK_TITLE } from '../config'
 
 export default function Home() {
+  const { bookId } = useParams()
+  const [book, setBook] = useState(null)
   const [chapters, setChapters] = useState(null)
   const [error, setError] = useState('')
   const [modal, setModal] = useState(false)
@@ -14,15 +15,20 @@ export default function Home() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    listChapters().then(setChapters).catch(e => setError(e.message))
-  }, [])
+    setBook(null)
+    setChapters(null)
+    setError('')
+    Promise.all([getBook(bookId), listChapters(bookId)])
+      .then(([b, cs]) => { setBook(b); setChapters(cs) })
+      .catch(e => setError(e.message))
+  }, [bookId])
 
   const add = async e => {
     e.preventDefault()
     if (!title.trim()) return setFormErr('Dai un nome al capitolo.')
     try {
-      const c = await createChapter(title.trim(), date)
-      navigate(`/capitolo/${c.id}`)
+      const c = await createChapter(bookId, title.trim(), date)
+      navigate(`/libro/${bookId}/capitolo/${c.id}`)
     } catch (err) {
       setFormErr(err.message)
     }
@@ -37,7 +43,7 @@ export default function Home() {
     <>
       <div className="home-head">
         <div>
-          <h1 className="home-title">{BOOK_TITLE}</h1>
+          <h1 className="home-title">{book?.title || '\u00a0'}</h1>
           {chapters && (
             <div className="muted">
               <span className="mono">{chapters.length}</span> capitoli · <span className="mono">{totals.blocks}</span> mini-capitoli ·{' '}
@@ -64,7 +70,7 @@ export default function Home() {
       {chapters && chapters.length > 0 && (
         <div className="chapter-list">
           {chapters.map(c => (
-            <Link key={c.id} to={`/capitolo/${c.id}`} className="chapter-row">
+            <Link key={c.id} to={`/libro/${bookId}/capitolo/${c.id}`} className="chapter-row">
               <span className="chapter-date">{fmtShortDate(c.chapter_date)}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div className="chapter-name">{c.title}</div>

@@ -1,10 +1,9 @@
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, PageBreak } from 'docx'
 import { fmtDate, paragraphs } from './format'
-import { BOOK_TITLE } from '../config'
 
-export async function exportDocx(chapters, { withTitles }) {
+export async function exportDocx(chapters, { withTitles, title }) {
   const children = [
-    new Paragraph({ heading: HeadingLevel.TITLE, alignment: AlignmentType.CENTER, children: [new TextRun({ text: BOOK_TITLE, font: 'Georgia' })] }),
+    new Paragraph({ heading: HeadingLevel.TITLE, alignment: AlignmentType.CENTER, children: [new TextRun({ text: title, font: 'Georgia' })] }),
   ]
   chapters.forEach(c => {
     children.push(new Paragraph({ children: [new PageBreak()] }))
@@ -31,7 +30,7 @@ export async function exportDocx(chapters, { withTitles }) {
   const blob = await Packer.toBlob(doc)
   const a = document.createElement('a')
   a.href = URL.createObjectURL(blob)
-  a.download = `${BOOK_TITLE}.docx`
+  a.download = `${title.replace(/[\\/:*?"<>|]+/g, '').trim() || 'libro'}.docx`
   a.click()
   URL.revokeObjectURL(a.href)
 }

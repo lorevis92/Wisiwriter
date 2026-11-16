@@ -72,7 +72,7 @@ In "chapter_summary" riassumi tutto il capitolo fin qui, compresi i blocchi dell
   }`
 }
 
-// Body: { mode: 'new'|'reprocess', styleGuide, bookMemory, previousChapters, chapter, blocks, sessionText, sessionBlockIds }
+// Body: { bookTitle, mode: 'new'|'reprocess', styleGuide, bookMemory, previousChapters, chapter, blocks, sessionText, sessionBlockIds }
 export async function POST(request) {
   return handle(async () => {
     const b = await request.json()
@@ -102,7 +102,7 @@ export async function POST(request) {
       user += partNote(i, parts.length, offset, reprocess)
 
       const { result: out, stop_reason } = await callClaude({
-        system: baseSystem(b.styleGuide),
+        system: baseSystem(b.styleGuide, b.bookTitle),
         user,
         schema: reprocess ? PROCESS_REPROCESS_SCHEMA : PROCESS_NEW_SCHEMA,
         maxTokens: MAX_TOKENS,

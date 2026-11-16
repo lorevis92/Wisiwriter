@@ -3,8 +3,9 @@ import { aiProcess, aiRevise, aiMerge } from './ai'
 
 // Contesto comune per tutte le chiamate AI
 async function buildContext(chapterId) {
-  const [data, memory, chapters] = await Promise.all([db.loadChapter(chapterId), db.getMemory(), db.listChapters()])
+  const data = await db.loadChapter(chapterId)
   const ch = data.chapter
+  const [book, chapters] = await Promise.all([db.getBook(ch.book_id), db.listChapters(ch.book_id)])
   const previousChapters = chapters
     .filter(c => c.id !== ch.id && (c.chapter_date < ch.chapter_date || (c.chapter_date === ch.chapter_date && c.created_at < ch.created_at)))
     .sort((a, b) => (a.chapter_date + a.created_at).localeCompare(b.chapter_date + b.created_at))
@@ -20,8 +21,9 @@ async function buildContext(chapterId) {
   return {
     data,
     payload: {
-      styleGuide: memory.style_guide,
-      bookMemory: memory.memory,
+      bookTitle: book.title,
+      styleGuide: book.style_guide,
+      bookMemory: book.memory,
       previousChapters,
       chapter: { title: ch.title, date: ch.chapter_date, summary: ch.summary },
       blocks,
@@ -132,12 +134,14 @@ export async function reviseBlock(chapterId, blockId) {
 // Applica un suggerimento dell'AI
 export async function applySuggestion(chapterId, s) {
   if (s.kind === 'memory') {
-    await db.appendMemory([s.text])
+    const chapter = await db.getChapter(chapterId)
+    await db.appendMemory(chapter.book_id, [s.text])
   } else if (s.kind === 'merge') {
     const { data, payload } = await buildContext(chapterId)
     const blocks = s.block_ids.map(id => data.blocks.find(b => b.id === id)).filter(Boolean).sort((a, b) => a.position - b.position)
     if (blocks.length >= 2) {
       const out = await aiMerge({
+        bookTitle: payload.bookTitle,
         styleGuide: payload.styleGuide,
         bookMemory: payload.bookMemory,
         blocks: blocks.map(b => b.current),

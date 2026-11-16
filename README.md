@@ -1,10 +1,11 @@
 # Wisiwriter
 
-App per scrivere **"Diario di un trader milionario"** da qualunque dispositivo.
+App per scrivere libri (il primo è **"Diario di un trader milionario"**) da qualunque dispositivo.
 Scrivi o detti in prosa, l'AI riscrive in mini-capitoli (titolo + frase finale) con la tua voce.
 
 ## Come funziona
 
+- **Libro** = ha i suoi capitoli, la sua guida di stile e la sua memoria. La home è la lista dei libri.
 - **Capitolo** = un giorno in cui scrivi (il nome lo dai tu, la data diventa il titolo nel libro).
 - **Originale** = ogni volta che scrivi/detti nasce una sessione. È tua, la puoi modificare quando vuoi.
   Se modifichi un originale già rielaborato compare "Rielabora dalla mia versione".
@@ -13,14 +14,14 @@ Scrivi o detti in prosa, l'AI riscrive in mini-capitoli (titolo + frase finale) 
   che applichi tu.
 - **Note** = seleziona una frase in un mini-capitolo → "+ Nota per l'AI" → poi "Applica note".
 - **Versioni** = ogni modifica crea una versione. "Approva" tiene solo quella approvata.
-- **Memoria del libro** = guida di stile + personaggi/ricorrenze/dettagli inventati.
-- **Esporta** = Word o PDF, con date come capitoli.
+- **Memoria del libro** = titolo, guida di stile + personaggi/ricorrenze/dettagli inventati (una per libro).
+- **Esporta** = Word o PDF del libro, con date come capitoli.
 - **Traduzioni** = tabella `wisiwriter_block_translations` già pronta (una per mini-capitolo per lingua, segnata "stale"
   quando il testo cambia). Lingue in `src/config.js`. Interfaccia da fare più avanti.
 
 ## Setup
 
-1. **Supabase** → nuovo progetto → SQL Editor → incolla ed esegui `supabase/schema.sql`.
+1. **Supabase** → nuovo progetto → SQL Editor → incolla ed esegui `supabase/schema.sql`. Su un database già esistente esegui invece, in ordine, i file in `supabase/migrations/`.
 2. **Logo** → copia `logo-wisiwriter.png` e `logo-wisiverse.png` in `/public` (senza logo mostra il nome in testo).
 3. **GitHub** → crea il repo e fai push.
 4. **Vercel** → importa il repo (framework: Vite) e aggiungi le variabili d'ambiente:

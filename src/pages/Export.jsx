@@ -1,8 +1,10 @@
 import { useState } from 'react'
+import { useParams } from 'react-router-dom'
 import { loadBook } from '../lib/db'
 
 
 export default function Export() {
+  const { bookId } = useParams()
   const [onlyApproved, setOnlyApproved] = useState(true)
   const [withTitles, setWithTitles] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -12,10 +14,10 @@ export default function Export() {
     setBusy(true)
     setError('')
     try {
-      const book = await loadBook({ onlyApproved })
-      if (!book.length) throw new Error(onlyApproved ? 'Non ci sono ancora mini-capitoli approvati.' : 'Il libro è ancora vuoto.')
+      const { book, chapters } = await loadBook({ bookId, onlyApproved })
+      if (!chapters.length) throw new Error(onlyApproved ? 'Non ci sono ancora mini-capitoli approvati.' : 'Il libro è ancora vuoto.')
       const { exportDocx } = await import('../lib/exportDocx')
-      await exportDocx(book, { withTitles })
+      await exportDocx(chapters, { withTitles, title: book.title })
     } catch (e) {
       setError(e.message)
     } finally {
@@ -23,7 +25,7 @@ export default function Export() {
     }
   }
 
-  const pdf = () => window.open(`/stampa?approvati=${onlyApproved ? 1 : 0}&titoli=${withTitles ? 1 : 0}`, '_blank')
+  const pdf = () => window.open(`/stampa?libro=${bookId}&approvati=${onlyApproved ? 1 : 0}&titoli=${withTitles ? 1 : 0}`, '_blank')
 
   return (
     <>

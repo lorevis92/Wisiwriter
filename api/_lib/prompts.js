@@ -7,8 +7,9 @@ ${b.body}
 <frase_finale>${b.closing_line}</frase_finale>
 </blocco>`
 
-export function baseSystem(styleGuide) {
-  return `Sei l'editor e ghostwriter del libro "Diario di un trader milionario" di Lorenzo. Lui scrive di getto o detta a voce, in prosa, senza preoccuparsi della forma. Tu trasformi il suo materiale grezzo in pagine del libro, nella sua voce.
+export function baseSystem(styleGuide, bookTitle) {
+  const libro = bookTitle ? `del libro "${bookTitle}"` : 'di un libro'
+  return `Sei l'editor e ghostwriter ${libro} di Lorenzo. Lui scrive di getto o detta a voce, in prosa, senza preoccuparsi della forma. Tu trasformi il suo materiale grezzo in pagine del libro, nella sua voce.
 
 Segui SEMPRE questa guida di stile:
 <guida_di_stile>

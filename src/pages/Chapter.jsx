@@ -12,7 +12,7 @@ import Busy from '../components/Busy'
 const KIND = { merge: 'Unire', move: 'Spostare', note: 'Osservazione' }
 
 export default function Chapter() {
-  const { id } = useParams()
+  const { bookId, id } = useParams()
   const navigate = useNavigate()
   const [data, setData] = useState(null)
   const [error, setError] = useState('')
@@ -107,13 +107,13 @@ export default function Chapter() {
   const removeChapter = async () => {
     if (!window.confirm(`Eliminare il capitolo "${chapter.title}" con tutti gli originali e i mini-capitoli?`)) return
     await db.deleteChapter(chapter.id)
-    navigate('/')
+    navigate(`/libro/${bookId}`)
   }
 
   return (
     <>
       <div className="chapter-head">
-        <Link to="/" className="btn btn-ghost">← Capitoli</Link>
+        <Link to={`/libro/${bookId}`} className="btn btn-ghost">← Capitoli</Link>
         {renaming ? (
           <input className="input serif" style={{ maxWidth: 480, fontSize: 20 }} autoFocus value={name}
             onChange={e => setName(e.target.value)} onBlur={rename} onKeyDown={e => e.key === 'Enter' && rename()} />

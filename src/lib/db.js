@@ -1,18 +1,59 @@
 import { supabase } from './supabase'
-import { DEFAULT_STYLE_GUIDE } from '../config'
 
 const must = ({ data, error }) => {
   if (error) throw new Error(error.message)
   return data
 }
 
-// ---------- Capitoli ----------
-export async function listChapters() {
-  const [chapters, sessions, blocks] = await Promise.all([
-    supabase.from('wisiwriter_chapters').select('*').order('chapter_date', { ascending: false }).order('created_at', { ascending: false }).then(must),
-    supabase.from('wisiwriter_sessions').select('id, chapter_id').then(must),
-    supabase.from('wisiwriter_blocks').select('id, chapter_id, status, needs_review').then(must),
+// ---------- Libri ----------
+export async function listBooks() {
+  const [books, chapters, blocks] = await Promise.all([
+    supabase.from('wisiwriter_books').select('*').order('created_at').then(must),
+    supabase.from('wisiwriter_chapters').select('id, book_id').then(must),
+    supabase.from('wisiwriter_blocks').select('id, chapter_id, status').then(must),
   ])
+  return books.map(book => {
+    const chapterIds = new Set(chapters.filter(c => c.book_id === book.id).map(c => c.id))
+    const bs = blocks.filter(b => chapterIds.has(b.chapter_id))
+    return {
+      ...book,
+      chapterCount: chapterIds.size,
+      blockCount: bs.length,
+      approvedCount: bs.filter(b => b.status === 'approved').length,
+    }
+  })
+}
+
+export const getBook = id => supabase.from('wisiwriter_books').select('*').eq('id', id).single().then(must)
+export const createBook = ({ title, style_guide = '' }) =>
+  supabase.from('wisiwriter_books').insert({ title, style_guide, memory: '' }).select().single().then(must)
+export const updateBook = (id, patch) =>
+  supabase.from('wisiwriter_books').update({ ...patch, updated_at: new Date().toISOString() }).eq('id', id).then(must)
+
+// Aggiunge righe alla memoria del libro
+export async function appendMemory(bookId, lines) {
+  if (!lines?.length) return
+  const book = await getBook(bookId)
+  const add = lines.map(l => `- ${l}`).join('\n')
+  await updateBook(bookId, { memory: book.memory ? `${book.memory.trimEnd()}\n${add}` : add })
+}
+
+// ---------- Capitoli ----------
+export async function listChapters(bookId) {
+  const chapters = await supabase
+    .from('wisiwriter_chapters')
+    .select('*')
+    .eq('book_id', bookId)
+    .order('chapter_date', { ascending: false })
+    .order('created_at', { ascending: false })
+    .then(must)
+  const ids = chapters.map(c => c.id)
+  const [sessions, blocks] = ids.length
+    ? await Promise.all([
+        supabase.from('wisiwriter_sessions').select('id, chapter_id').in('chapter_id', ids).then(must),
+        supabase.from('wisiwriter_blocks').select('id, chapter_id, status, needs_review').in('chapter_id', ids).then(must),
+      ])
+    : [[], []]
   return chapters.map(c => {
     const bs = blocks.filter(b => b.chapter_id === c.id)
     return {
@@ -25,27 +66,12 @@ export async function listChapters() {
   })
 }
 
-export const createChapter = (title, chapter_date) =>
-  supabase.from('wisiwriter_chapters').insert({ title, chapter_date }).select().single().then(must)
+export const getChapter = id => supabase.from('wisiwriter_chapters').select('*').eq('id', id).single().then(must)
+export const createChapter = (book_id, title, chapter_date) =>
+  supabase.from('wisiwriter_chapters').insert({ book_id, title, chapter_date }).select().single().then(must)
 export const updateChapter = (id, patch) =>
   supabase.from('wisiwriter_chapters').update(patch).eq('id', id).then(must)
 export const deleteChapter = id => supabase.from('wisiwriter_chapters').delete().eq('id', id).then(must)
-
-// ---------- Memoria del libro ----------
-export async function getMemory() {
-  const row = await supabase.from('wisiwriter_book_memory').select('*').eq('id', 1).maybeSingle().then(must)
-  if (row) return row
-  return supabase.from('wisiwriter_book_memory').insert({ id: 1, style_guide: DEFAULT_STYLE_GUIDE, memory: '' }).select().single().then(must)
-}
-export const saveMemory = patch =>
-  supabase.from('wisiwriter_book_memory').update({ ...patch, updated_at: new Date().toISOString() }).eq('id', 1).then(must)
-
-export async function appendMemory(lines) {
-  if (!lines?.length) return
-  const m = await getMemory()
-  const add = lines.map(l => `- ${l}`).join('\n')
-  await saveMemory({ memory: m.memory ? `${m.memory.trimEnd()}\n${add}` : add })
-}
 
 // ---------- Capitolo completo ----------
 export async function loadChapter(id) {
@@ -127,20 +153,31 @@ export const insertSuggestions = rows => (rows.length ? supabase.from('wisiwrite
 export const setSuggestionStatus = (id, status) => supabase.from('wisiwriter_suggestions').update({ status }).eq('id', id).then(must)
 
 // ---------- Export ----------
-export async function loadBook({ onlyApproved }) {
-  const chapters = await supabase.from('wisiwriter_chapters').select('*').order('chapter_date').order('created_at').then(must)
-  let q = supabase.from('wisiwriter_blocks').select('*').order('position')
-  if (onlyApproved) q = q.eq('status', 'approved')
-  const blocks = await q.then(must)
+// Restituisce { book, chapters } con i capitoli del libro (in ordine) e le versioni correnti dei blocchi
+export async function loadBook({ bookId, onlyApproved }) {
+  const [book, chapters] = await Promise.all([
+    getBook(bookId),
+    supabase.from('wisiwriter_chapters').select('*').eq('book_id', bookId).order('chapter_date').order('created_at').then(must),
+  ])
+  const chapterIds = chapters.map(c => c.id)
+  let blocks = []
+  if (chapterIds.length) {
+    let q = supabase.from('wisiwriter_blocks').select('*').in('chapter_id', chapterIds).order('position')
+    if (onlyApproved) q = q.eq('status', 'approved')
+    blocks = await q.then(must)
+  }
   const vids = blocks.map(b => b.current_version_id).filter(Boolean)
   const versions = vids.length ? await supabase.from('wisiwriter_block_versions').select('*').in('id', vids).then(must) : []
-  return chapters
-    .map(c => ({
-      ...c,
-      blocks: blocks
-        .filter(b => b.chapter_id === c.id)
-        .map(b => versions.find(v => v.id === b.current_version_id))
-        .filter(Boolean),
-    }))
-    .filter(c => c.blocks.length)
+  return {
+    book,
+    chapters: chapters
+      .map(c => ({
+        ...c,
+        blocks: blocks
+          .filter(b => b.chapter_id === c.id)
+          .map(b => versions.find(v => v.id === b.current_version_id))
+          .filter(Boolean),
+      }))
+      .filter(c => c.blocks.length),
+  }
 }
