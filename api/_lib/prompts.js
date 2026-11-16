@@ -15,7 +15,7 @@ Segui SEMPRE questa guida di stile:
 ${styleGuide}
 </guida_di_stile>
 
-Scrivi in italiano. Rispondi esclusivamente con un oggetto JSON valido, senza testo prima o dopo, senza blocchi di codice markdown. Nei campi di testo usa \\n\\n per separare i paragrafi.`
+Scrivi in italiano. Restituisci il risultato con lo strumento salva_risultato. Nei campi di testo usa \\n\\n per separare i paragrafi.`
 }
 
 export function bookContext({ bookMemory, previousChapters = [], chapter, blocks = [] }) {
@@ -51,13 +51,7 @@ In "memory_additions" elenca i fatti nuovi da ricordare per il resto del libro: 
 RIASSUNTO
 In "chapter_summary" scrivi un riassunto aggiornato dell'intero capitolo (blocchi esistenti + nuovi) in 2-4 frasi, utile come contesto per i capitoli futuri.
 
-FORMATO DI RISPOSTA
-{
-  "blocks": [{ "title": "...", "body": "...", "closing_line": "..." }],
-  "suggestions": [{ "kind": "merge|move|note", "text": "...", "block_ids": ["..."], "new_position": 2 }],
-  "memory_additions": ["..."],
-  "chapter_summary": "..."
-}`
+Restituisci il risultato con lo strumento salva_risultato.`
 
 export const PROCESS_REPROCESS_INSTRUCTIONS = `COMPITO
 Lorenzo ha MODIFICATO un suo testo originale che era già stato rielaborato. Qui sotto trovi l'originale aggiornato e i blocchi che erano stati generati da quella versione precedente (blocchi_da_aggiornare). Rielabora l'originale aggiornato.
@@ -69,26 +63,18 @@ Regole:
 - Un blocco esistente che non sostituisci con nulla verrà segnalato a Lorenzo come "non corrisponde più all'originale".
 - Gli altri blocchi del capitolo sono contesto: non riscriverli.
 
-Suggerimenti strutturali, memory_additions e chapter_summary come sempre (vedi formato). Per i blocchi nuovi usa "new:N" dove N è l'indice nell'array "blocks".
+Suggerimenti strutturali, memory_additions e chapter_summary come sempre (vedi lo strumento salva_risultato). Per i blocchi nuovi usa "new:N" dove N è l'indice nell'array "blocks".
 
-FORMATO DI RISPOSTA
-{
-  "blocks": [{ "replaces": "id-o-null", "title": "...", "body": "...", "closing_line": "..." }],
-  "suggestions": [{ "kind": "merge|move|note", "text": "...", "block_ids": ["..."], "new_position": 2 }],
-  "memory_additions": ["..."],
-  "chapter_summary": "..."
-}`
+Restituisci il risultato con lo strumento salva_risultato.`
 
 export const REVISE_INSTRUCTIONS = `COMPITO
 Riscrivi il blocco qui sotto seguendo le note di Lorenzo. Ogni nota può riferirsi a un pezzo di testo preciso (citazione) oppure al blocco in generale. Cambia ciò che le note chiedono e quello che serve perché il blocco resti scorrevole; il resto lascialo com'è. Hai anche il testo originale di Lorenzo da cui è nato il blocco, utile se una nota chiede di recuperare qualcosa.
 
 Se cambi o inventi dettagli nuovi (prezzi, nomi, cifre) elencali in "memory_additions".
 
-FORMATO DI RISPOSTA
-{ "title": "...", "body": "...", "closing_line": "...", "memory_additions": ["..."] }`
+Restituisci il risultato con lo strumento salva_risultato.`
 
 export const MERGE_INSTRUCTIONS = `COMPITO
 Unisci i blocchi qui sotto in un unico mini-capitolo scorrevole, nell'ordine dato. Non perdere fatti, elimina le ripetizioni, un solo titolo e una sola frase finale.
 
-FORMATO DI RISPOSTA
-{ "title": "...", "body": "...", "closing_line": "..." }`
+Restituisci il risultato con lo strumento salva_risultato.`

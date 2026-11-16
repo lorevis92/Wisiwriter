@@ -1,5 +1,6 @@
-import { callClaude, parseJson, handle } from './_lib/claude.js'
+import { callClaude, handle } from './_lib/claude.js'
 import { baseSystem, MERGE_INSTRUCTIONS } from './_lib/prompts.js'
+import { MERGE_SCHEMA } from './_lib/schemas.js'
 
 // Body: { styleGuide, bookMemory, blocks: [{title, body, closing_line}], hint }
 export async function POST(request) {
@@ -14,7 +15,7 @@ ${b.blocks
   .join('\n\n')}
 
 ${b.hint ? `<motivo_unione>${b.hint}</motivo_unione>\n\n` : ''}${MERGE_INSTRUCTIONS}`
-    const out = parseJson(await callClaude({ system: baseSystem(b.styleGuide), user, maxTokens: 6000 }))
+    const out = await callClaude({ system: baseSystem(b.styleGuide), user, schema: MERGE_SCHEMA, maxTokens: 6000 })
     return { title: out.title, body: out.body, closing_line: out.closing_line || '' }
   })
 }

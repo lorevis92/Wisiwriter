@@ -1,5 +1,6 @@
-import { callClaude, parseJson, handle } from './_lib/claude.js'
+import { callClaude, handle } from './_lib/claude.js'
 import { baseSystem, bookContext, REVISE_INSTRUCTIONS } from './_lib/prompts.js'
+import { REVISE_SCHEMA } from './_lib/schemas.js'
 
 // Body: { styleGuide, bookMemory, previousChapters, chapter, blocks, block, notes: [{quote, note}], originalText }
 export async function POST(request) {
@@ -28,7 +29,7 @@ ${notes}
 </note_di_lorenzo>
 
 ${REVISE_INSTRUCTIONS}`
-    const out = parseJson(await callClaude({ system: baseSystem(b.styleGuide), user, maxTokens: 6000 }))
+    const out = await callClaude({ system: baseSystem(b.styleGuide), user, schema: REVISE_SCHEMA, maxTokens: 6000 })
     return {
       title: out.title || b.block.title,
       body: out.body || b.block.body,

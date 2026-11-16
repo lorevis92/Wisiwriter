@@ -1,5 +1,6 @@
-import { callClaude, parseJson, handle } from './_lib/claude.js'
+import { callClaude, handle } from './_lib/claude.js'
 import { baseSystem, bookContext, PROCESS_NEW_INSTRUCTIONS, PROCESS_REPROCESS_INSTRUCTIONS } from './_lib/prompts.js'
+import { PROCESS_NEW_SCHEMA, PROCESS_REPROCESS_SCHEMA } from './_lib/schemas.js'
 
 // Body: { mode: 'new'|'reprocess', styleGuide, bookMemory, previousChapters, chapter, blocks, sessionText, sessionBlockIds }
 export async function POST(request) {
@@ -19,8 +20,12 @@ export async function POST(request) {
       user += `<nuovo_testo_originale>\n${b.sessionText}\n</nuovo_testo_originale>\n\n${PROCESS_NEW_INSTRUCTIONS}`
     }
 
-    const text = await callClaude({ system: baseSystem(b.styleGuide), user, maxTokens: 12000 })
-    const out = parseJson(text)
+    const out = await callClaude({
+      system: baseSystem(b.styleGuide),
+      user,
+      schema: reprocess ? PROCESS_REPROCESS_SCHEMA : PROCESS_NEW_SCHEMA,
+      maxTokens: 16000,
+    })
     return {
       blocks: out.blocks || [],
       suggestions: out.suggestions || [],

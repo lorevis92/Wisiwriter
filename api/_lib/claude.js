@@ -1,4 +1,9 @@
-export async function callClaude({ system, user, maxTokens = 8000 }) {
+export const TOOL_NAME = 'salva_risultato'
+
+// Chiama Claude obbligandolo a restituire il risultato tramite lo strumento "salva_risultato".
+// Nota: i modelli recenti (es. claude-opus-5-5) rifiutano tool_choice forzato ("tool"/"any") con un 400,
+// quindi usiamo tool_choice "auto" + strict: true (input garantito conforme allo schema) + istruzione nel prompt.
+export async function callClaude({ system, user, schema, maxTokens = 8000 }) {
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -11,6 +16,15 @@ export async function callClaude({ system, user, maxTokens = 8000 }) {
       max_tokens: maxTokens,
       system,
       messages: [{ role: 'user', content: user }],
+      tools: [
+        {
+          name: TOOL_NAME,
+          description: 'Salva il risultato del lavoro. Chiamalo sempre, una sola volta, con il risultato completo.',
+          input_schema: schema,
+          strict: true,
+        },
+      ],
+      tool_choice: { type: 'auto', disable_parallel_tool_use: true },
     }),
   })
   if (!res.ok) {
@@ -18,14 +32,13 @@ export async function callClaude({ system, user, maxTokens = 8000 }) {
     throw new Error(`Claude API ${res.status}: ${t.slice(0, 500)}`)
   }
   const data = await res.json()
-  return (data.content || []).filter(c => c.type === 'text').map(c => c.text).join('')
-}
-
-export function parseJson(text) {
-  const s = text.indexOf('{')
-  const e = text.lastIndexOf('}')
-  if (s === -1 || e === -1) throw new Error('Risposta AI non in formato JSON')
-  return JSON.parse(text.slice(s, e + 1))
+  const content = data.content || []
+  const tool = content.find(c => c.type === 'tool_use' && c.name === TOOL_NAME)
+  if (!tool) {
+    const text = content.filter(c => c.type === 'text').map(c => c.text).join('')
+    throw new Error(`Claude non ha usato lo strumento ${TOOL_NAME} (stop_reason: ${data.stop_reason}). Testo: ${text.slice(0, 300) || '(nessuno)'}`)
+  }
+  return tool.input
 }
 
 export function json(data, status = 200) {
