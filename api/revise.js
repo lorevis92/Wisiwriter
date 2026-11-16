@@ -29,7 +29,7 @@ ${notes}
 </note_di_lorenzo>
 
 ${REVISE_INSTRUCTIONS}`
-    const out = await callClaude({ system: baseSystem(b.styleGuide), user, schema: REVISE_SCHEMA, maxTokens: 6000 })
+    const { result: out } = await callClaude({ system: baseSystem(b.styleGuide), user, schema: REVISE_SCHEMA, maxTokens: 6000 })
     return {
       title: out.title || b.block.title,
       body: out.body || b.block.body,

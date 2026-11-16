@@ -141,6 +141,7 @@ export default function Chapter() {
           {sessions.length === 0 && <p className="muted" style={{ fontSize: 14 }}>Ancora niente. Scrivi qui sotto o registra.</p>}
           {sessions.map((s, i) => (
             <SessionItem key={s.id + (s.original_updated_at || '')} session={s} index={i} disabled={!!busy}
+              blockCount={blocks.filter(b => b.session_id === s.id).length}
               onSaveText={(sid, text) => run('Salvo l’originale…', () => db.updateSessionText(sid, text))}
               onProcess={onProcess} onDelete={onDeleteSession} />
           ))}

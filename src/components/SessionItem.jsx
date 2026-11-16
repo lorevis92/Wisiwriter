@@ -3,7 +3,7 @@ import { fmtDateTime } from '../lib/format'
 
 const TYPE = { text: 'tastiera', voice: 'vocale', mixed: 'vocale + tastiera' }
 
-export default function SessionItem({ session, index, onSaveText, onProcess, onDelete, disabled }) {
+export default function SessionItem({ session, index, blockCount = 0, onSaveText, onProcess, onDelete, disabled }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(session.original_text)
 
@@ -41,7 +41,7 @@ export default function SessionItem({ session, index, onSaveText, onProcess, onD
       {!editing && (
         <div className="row" style={{ marginTop: 8, flexWrap: 'wrap' }}>
           <button className="btn btn-ghost btn-sm" onClick={() => { setDraft(session.original_text); setEditing(true) }} disabled={disabled}>Modifica</button>
-          {(!session.processed_at || modified) && (
+          {(!session.processed_at || modified || blockCount === 0) && (
             <button className="btn btn-sm btn-primary" onClick={() => onProcess(session)} disabled={disabled}>
               {modified ? 'Rielabora dalla mia versione' : 'Rielabora'}
             </button>

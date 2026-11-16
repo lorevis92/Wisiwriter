@@ -15,7 +15,7 @@ ${b.blocks
   .join('\n\n')}
 
 ${b.hint ? `<motivo_unione>${b.hint}</motivo_unione>\n\n` : ''}${MERGE_INSTRUCTIONS}`
-    const out = await callClaude({ system: baseSystem(b.styleGuide), user, schema: MERGE_SCHEMA, maxTokens: 6000 })
+    const { result: out } = await callClaude({ system: baseSystem(b.styleGuide), user, schema: MERGE_SCHEMA, maxTokens: 6000 })
     return { title: out.title, body: out.body, closing_line: out.closing_line || '' }
   })
 }
