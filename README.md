@@ -1,4 +1,4 @@
-# Wisi Diario
+# Wisiwriter
 
 App per scrivere **"Diario di un trader milionario"** da qualunque dispositivo.
 Scrivi o detti in prosa, l'AI riscrive in mini-capitoli (titolo + frase finale) con la tua voce.
@@ -15,13 +15,13 @@ Scrivi o detti in prosa, l'AI riscrive in mini-capitoli (titolo + frase finale) 
 - **Versioni** = ogni modifica crea una versione. "Approva" tiene solo quella approvata.
 - **Memoria del libro** = guida di stile + personaggi/ricorrenze/dettagli inventati.
 - **Esporta** = Word o PDF, con date come capitoli.
-- **Traduzioni** = tabella `block_translations` già pronta (una per mini-capitolo per lingua, segnata "stale"
+- **Traduzioni** = tabella `wisiwriter_block_translations` già pronta (una per mini-capitolo per lingua, segnata "stale"
   quando il testo cambia). Lingue in `src/config.js`. Interfaccia da fare più avanti.
 
 ## Setup
 
 1. **Supabase** → nuovo progetto → SQL Editor → incolla ed esegui `supabase/schema.sql`.
-2. **Logo** → copia `logo-diario.png` e `logo-wisiverse.png` in `/public` (senza logo mostra il nome in testo).
+2. **Logo** → copia `logo-wisiwriter.png` e `logo-wisiverse.png` in `/public` (senza logo mostra il nome in testo).
 3. **GitHub** → crea il repo e fai push.
 4. **Vercel** → importa il repo (framework: Vite) e aggiungi le variabili d'ambiente:
    - `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
