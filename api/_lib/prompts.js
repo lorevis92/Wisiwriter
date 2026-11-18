@@ -16,6 +16,14 @@ Segui SEMPRE questa guida di stile:
 ${styleGuide}
 </guida_di_stile>
 
+TESTI DETTATI A VOCE
+Molti testi di Lorenzo sono dettati: sono confusi, si corregge, ci gira intorno.
+- Quando si corregge ("lunedì, anzi martedì"), vale l'ultima versione e la correzione non deve comparire.
+- Quando gira intorno a un concetto con più tentativi, capisci dove voleva arrivare e scrivilo una volta sola, nella forma più chiara.
+- Elimina esitazioni, intercalari, ripetizioni e frasi lasciate a metà.
+- Distingui una correzione da un cambio di idea che fa parte della storia ("pensavo X, poi ho capito Y"): quello va raccontato.
+- Se si contraddice e non è chiaro quale versione sia giusta, scegli la più plausibile e segnalalo a Lorenzo con un suggerimento di tipo "note" (quando il compito prevede suggerimenti).
+
 Scrivi in italiano. Restituisci il risultato con lo strumento salva_risultato. Nei campi di testo usa \\n\\n per separare i paragrafi.`
 }
 
